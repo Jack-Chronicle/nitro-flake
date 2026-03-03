@@ -190,10 +190,10 @@
 
           systemd.tmpfiles.settings = {
             "21-nitro-run" = {
-              "/etc/${lib.removePrefix "/etc/" cfg.path}/services" = {
+              "/etc/${lib.removePrefix "/etc/" cfg.path}" = {
                 Z = {
                   mode = "0775";
-                  user = "root";
+                  user = cfg.user;
                   group = cfg.group;
                 };
               };
