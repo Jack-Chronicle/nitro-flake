@@ -193,7 +193,7 @@
               "/etc/${lib.removePrefix "/etc/" cfg.path}" = {
                 Z = {
                   mode = "0775";
-                  user = cfg.user;
+                  user = "root";
                   group = cfg.group;
                 };
               };
@@ -217,7 +217,7 @@
                 "${pkgs.nitro}/bin/nitro /etc/${lib.removePrefix "/etc/" cfg.path}/services";
               Restart = "always";
               RestartSec = "15s";
-              User = "${cfg.user}";
+              User = "root";
               Group = "${cfg.group}";
               Environment = lib.concatStringsSep ":" [
                 "PATH=/run/current-system/sw/bin"
