@@ -82,11 +82,11 @@
              description = "Enable Nitro Supervisor.";
            };
 
-           # user = lib.mkOption {
-           #   type = lib.types.str;
-           #   default = "nitro";
-           #   description = "Nitro Supervisor User.";
-           # };
+           user = lib.mkOption {
+             type = lib.types.str;
+             default = "nitro";
+             description = "Nitro Supervisor User.";
+           };
 
            group = lib.mkOption {
              type = lib.types.str;
@@ -186,10 +186,14 @@
           environment.systemPackages = [ pkgs.nitro ];
 
           users = {
+            users.${cfg.user} = {
+              isSystemUser = true;
+              group = cfg.group;
+            };
             groups.${cfg.group} = {
               name = cfg.group;
               members = [
-                "root"
+                cfg.user
               ];
             };
           };
@@ -202,28 +206,21 @@
               "/etc/${lib.removePrefix "/etc/" cfg.path}" = {
                 Z = {
                   mode = "0775";
-                  user = "root";
+                  user = cfg.user;
                   group = cfg.group;
                 };
               };
               "/run/nitro/notify" = {
                 d = {
                   mode = "0775";
-                  user = "root";
-                  group = cfg.group;
-                };
-              };
-              "/run/nitro/nitro.sock" = {
-                f = {
-                  mode = "0775";
-                  user = "root";
+                  user = cfg.user;
                   group = cfg.group;
                 };
               };
               "/run/nitro" = {
                 Z = {
                   mode = "0775";
-                  user = "root";
+                  user = cfg.user;
                   group = cfg.group;
                 };
               };
@@ -247,7 +244,7 @@
                 "${pkgs.nitro}/bin/nitro /etc/${lib.removePrefix "/etc/" cfg.path}/services";
               Restart = "always";
               RestartSec = "15s";
-              User = "root";
+              User = cfg.user;
               Group = cfg.group;
               Environment = lib.concatStringsSep ":" [
                 "PATH=/run/current-system/sw/bin"
