@@ -185,6 +185,14 @@
 
           environment.systemPackages = [ pkgs.nitro ];
 
+          groups.${cfg.group} = {
+            name = cfg.group;
+            members = [
+              "${cfg.user}"
+              "root"
+            ];
+          };
+
           # Derive the etc key from cfg.path.
           environment.etc."${lib.removePrefix "/etc/" cfg.path}/services".source = servicesDir;
 
@@ -193,14 +201,14 @@
               "/etc/${lib.removePrefix "/etc/" cfg.path}" = {
                 Z = {
                   mode = "0775";
-                  user = "root";
+                  user = cfg.user;
                   group = cfg.group;
                 };
               };
               "/run/nitro" = {
                 Z = {
                   mode = "0775";
-                  user = "root";
+                  user = cfg.user;
                   group = cfg.group;
                 };
               };
@@ -224,8 +232,8 @@
                 "${pkgs.nitro}/bin/nitro /etc/${lib.removePrefix "/etc/" cfg.path}/services";
               Restart = "always";
               RestartSec = "15s";
-              User = "root";
-              Group = "${cfg.group}";
+              User = cfg.user;
+              Group = cfg.group;
               Environment = lib.concatStringsSep ":" [
                 "PATH=/run/current-system/sw/bin"
                 "/home/lantern/.nix-profile/bin"
