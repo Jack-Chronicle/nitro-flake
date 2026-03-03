@@ -83,13 +83,13 @@
            };
 
            user = lib.mkOption {
-             type = lib.types.string;
+             type = lib.types.str;
              default = "nitro";
              description = "Nitro Supervisor User.";
            };
 
            group = lib.mkOption {
-             type = lib.types.string;
+             type = lib.types.str;
              default = "nitro";
              description = "Nitro Supervisor Group.";
            };
