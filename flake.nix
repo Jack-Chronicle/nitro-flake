@@ -202,6 +202,7 @@
 
           # systemd service running nitro
           systemd.services.nitro = {
+            enable = true;
             description = "Nitro service supervisor";
 
             wantedBy = [ "default.target" ];
