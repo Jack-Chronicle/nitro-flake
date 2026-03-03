@@ -32,12 +32,6 @@
                s    = svc.value;
              in ''
                mkdir -p "$out/${name}"
-               mkdir -p "/etc/${lib.removePrefix "/etc/" cfg.path}"
-               mkdir -p "/run/nitro/notify"
-               touch "/run/nitro/nitro.sock"
-
-               chown root:nitro "/run/nitro"
-               chmod 775 "/run/nitro"
 
                # running -> presence/absence of 'down'
                ${lib.optionalString (!s.running) ''
