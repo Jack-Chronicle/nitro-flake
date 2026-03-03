@@ -30,7 +30,6 @@ imports = [
   services = {
     nitroctl = {
       enable = true; # Enable nitro & nitroctl packages
-      user = "nitro"; # User to Run service as
       group = "nitro"; # Group to Run service as
       path = "/etc/nitro"; # Services Location
       services = {
