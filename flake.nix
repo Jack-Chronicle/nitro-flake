@@ -141,7 +141,7 @@
 
                  log = lib.mkOption {
                    type = lib.types.path;
-                   default = null;
+                   default = "";
                    description = ''
                      Symlink target to another service directory whose stdin will receive this service's stdout for supervised logging.
                    '';
