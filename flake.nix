@@ -185,17 +185,19 @@
 
           environment.systemPackages = [ pkgs.nitro ];
 
-          users.${cfg.user} = {
-            isSystemUser = true;
-            home = /etc/${lib.removePrefix "/etc/" cfg.path};
-            group = cfg.group;
-          };
-          users.groups.${cfg.group} = {
-            name = cfg.group;
-            members = [
-              "${cfg.user}"
-              "root"
-            ];
+          users = {
+            users.${cfg.user} = {
+              isSystemUser = true;
+              home = /etc/${lib.removePrefix "/etc/" cfg.path};
+              group = cfg.group;
+            };
+            groups.${cfg.group} = {
+              name = cfg.group;
+              members = [
+                "${cfg.user}"
+                "root"
+              ];
+            };
           };
 
           # Derive the etc key from cfg.path.
