@@ -185,7 +185,7 @@
 
           environment.systemPackages = [ pkgs.nitro ];
 
-          groups.${cfg.group} = {
+          users.groups.${cfg.group} = {
             name = cfg.group;
             members = [
               "${cfg.user}"
