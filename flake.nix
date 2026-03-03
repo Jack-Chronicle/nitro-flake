@@ -188,7 +188,6 @@
           users = {
             users.${cfg.user} = {
               isSystemUser = true;
-              home = /etc/${lib.removePrefix "/etc/" cfg.path};
               group = cfg.group;
             };
             groups.${cfg.group} = {
