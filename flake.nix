@@ -214,7 +214,7 @@
 
             serviceConfig = {
               ExecStart =
-                "${pkgs.nitro}/bin/nitro ${lib.removePrefix "/etc/" cfg.path}/services";
+                "${pkgs.nitro}/bin/nitro /etc/${lib.removePrefix "/etc/" cfg.path}/services";
               Restart = "always";
               RestartSec = "15s";
               User = "${cfg.user}";
