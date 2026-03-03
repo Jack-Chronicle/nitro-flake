@@ -185,6 +185,11 @@
 
           environment.systemPackages = [ pkgs.nitro ];
 
+          users.${cfg.user} = {
+            isSystemUser = true;
+            home = /etc/${lib.removePrefix "/etc/" cfg.path};
+            group = cfg.group;
+          };
           users.groups.${cfg.group} = {
             name = cfg.group;
             members = [
