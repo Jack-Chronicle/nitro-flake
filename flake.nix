@@ -210,6 +210,11 @@
               # Derive the etc key from cfg.path.
               environment.etc."${lib.removePrefix "/etc/" cfg.path}/services".source = servicesDir;
 
+              filesystems."/run/nitro/" = {
+                device = "tmpfs";
+                fstype = "tmpfs";
+              };
+
               systemd.tmpfiles.settings = {
                 "21-nitro-run" = {
                   "/etc/${lib.removePrefix "/etc/" cfg.path}" = {
