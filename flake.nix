@@ -219,7 +219,7 @@
                     };
                   };
                   "/run/nitro" = {
-                    z = {
+                    Z = {
                       mode = "0775";
                       user = "root";
                       group = cfg.group;
