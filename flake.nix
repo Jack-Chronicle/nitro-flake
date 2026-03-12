@@ -245,7 +245,7 @@
                   ExecStart = ''
                     ${pkgs.nitro}/bin/nitro /etc/${lib.removePrefix "/etc/" cfg.path}/services
                   '';
-                  ExecPostStart = ''
+                  ExecStartPost = ''
                     chmod 775 -R /run/nitro/
                   '';
                   Restart = "always";
