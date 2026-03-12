@@ -243,7 +243,7 @@
 
                 serviceConfig = {
                   ExecStart = ''
-                    ${pkgs.nitro}/bin/nitro /etc/${lib.removePrefix "/etc/" cfg.path}/services ||
+                    ${pkgs.nitro}/bin/nitro /etc/${lib.removePrefix "/etc/" cfg.path}/services
                     chmod 775 -R /run/nitro
                   '';
                   Restart = "always";
