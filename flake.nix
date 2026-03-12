@@ -89,11 +89,11 @@
                   description = "Enable Nitro Supervisor.";
                 };
 
-                # user = lib.mkOption {
-                #   type = lib.types.str;
-                #   default = "nitro";
-                #   description = "Nitro Supervisor User.";
-                # };
+                user = lib.mkOption {
+                  type = lib.types.str;
+                  default = "root";
+                  description = "Nitro Supervisor User.";
+                };
 
                 group = lib.mkOption {
                   type = lib.types.str;
@@ -201,6 +201,7 @@
                 groups.${cfg.group} = {
                   name = cfg.group;
                   members = [
+                    cfg.user
                     "root"
                   ];
                 };
@@ -214,14 +215,14 @@
                   "/etc/${lib.removePrefix "/etc/" cfg.path}" = {
                     Z = {
                       mode = "0775";
-                      user = "root";
+                      user = cfg.user;
                       group = cfg.group;
                     };
                   };
                   "/run/nitro" = {
                     Z = {
                       mode = "0775";
-                      user = "root";
+                      user = cfg.user;
                       group = cfg.group;
                     };
                   };
@@ -241,10 +242,13 @@
                 partOf = [ "graphical-session.target" ];
 
                 serviceConfig = {
-                  ExecStart = "${pkgs.nitro}/bin/nitro /etc/${lib.removePrefix "/etc/" cfg.path}/services";
+                  ExecStart = ''
+                    ${pkgs.nitro}/bin/nitro /etc/${lib.removePrefix "/etc/" cfg.path}/services ||
+                    chmod 775 -R /run/nitro
+                  '';
                   Restart = "always";
                   RestartSec = "15s";
-                  User = "root";
+                  User = cfg.user;
                   Group = cfg.group;
                   Environment = lib.concatStringsSep ":" [
                     "PATH=/run/current-system/sw/bin"
