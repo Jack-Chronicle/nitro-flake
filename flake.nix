@@ -212,7 +212,7 @@
 
               fileSystems."/run/nitro/" = {
                 device = "tmpfs";
-                fstype = "tmpfs";
+                fsType = "tmpfs";
               };
 
               systemd.tmpfiles.settings = {
