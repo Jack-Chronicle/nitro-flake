@@ -210,7 +210,7 @@
               # Derive the etc key from cfg.path.
               environment.etc."${lib.removePrefix "/etc/" cfg.path}/services".source = servicesDir;
 
-              fileSystems."/run/nitro/" = {
+              fileSystems."/run/nitro" = {
                 device = "tmpfs";
                 fsType = "tmpfs";
               };
