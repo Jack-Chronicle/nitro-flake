@@ -30,47 +30,73 @@
             servicesDir = pkgs.runCommand "nitro-services" { } (
               let
                 svcList = lib.attrsToList cfg.services;
-                mkService =
-                  svc:
+                mkService = svc:
                   let
-                    name = svc.name;
+                    name = svc.name;  # "convert" or "convert@"
                     s = svc.value;
+
+                    # Smart base name: append '@' only if not already present
+                    baseName = if lib.hasSuffix "@" name
+                               then name
+                               else "${name}@";
+
+                    # Children list: bool → [] | list → list
+                    children = if lib.isList s.template
+                               then s.template
+                               else if s.template == true
+                                    then []
+                                    else [];
                   in
                   ''
-                    mkdir -p "$out/${name}"
+                    # Service Directories
+                    ${lib.optionalString (!s.template == false) ''
+                      mkdir -p "$out/${name}"
+                    ''}
+                    ${lib.optionalString (!s.template != false) ''
+                      # Template Creation (always ends with '@')
+                      mkdir -p "$out/${baseName}"
 
-                    # running -> presence/absence of 'down'
+                      ${lib.optionalString (!s.template != true) ''
+                        # Child symlinks (alongside template, not inside)
+                        ${lib.concatMapStrings (child: ''
+                          ln -s "$out/${baseName}" "$out/${baseName}${child}"
+                        '') children}
+                      ''}
+                    ''}
+
+                    # Service scripts
+                    ## running -> presence/absence of 'down'
                     ${lib.optionalString (!s.running) ''
-                      touch "$out/${name}/down"
+                      touch "$out/${baseName}/down"
                     ''}
 
-                    # setup script
+                    ## setup
                     ${lib.optionalString (s.setup != "") ''
-                                  cat > "$out/${name}/setup" << 'EOF'
-                      ${s.setup}
-                      EOF
-                                  chmod +x "$out/${name}/setup"
+                      cat > "$out/${baseName}/setup" << 'EOF'
+                    ${s.setup}
+                    EOF
+                      chmod +x "$out/${baseName}/setup"
                     ''}
 
-                    # run script
+                    ## run
                     ${lib.optionalString (s.run != "") ''
-                                  cat > "$out/${name}/run" << 'EOF'
-                      ${s.run}
-                      EOF
-                                  chmod +x "$out/${name}/run"
+                      cat > "$out/${baseName}/run" << 'EOF'
+                    ${s.run}
+                    EOF
+                      chmod +x "$out/${baseName}/run"
                     ''}
 
-                    # finish script
+                    ## finish
                     ${lib.optionalString (s.finish != "") ''
-                                  cat > "$out/${name}/finish" << 'EOF'
-                      ${s.finish}
-                      EOF
-                                  chmod +x "$out/${name}/finish"
+                      cat > "$out/${baseName}/finish" << 'EOF'
+                    ${s.finish}
+                    EOF
+                      chmod +x "$out/${baseName}/finish"
                     ''}
 
-                    # log symlink
+                    ## log
                     ${lib.optionalString (s.log != null) ''
-                      ln -s ${s.log} "$out/${name}/log"
+                      ln -s ${s.log} "$out/${baseName}/log"
                     ''}
                   '';
               in
@@ -122,6 +148,18 @@
                             '';
                           };
 
+                          template = lib.mkOption {
+                            type = lib.types.oneOf [
+                              lib.types.bool
+                              (lib.types.listOf lib.types.nonEmptyStr)
+                            ];
+                            default = false;
+                            description = ''
+                              If `true` or a list of strings, treat as Nitro template (appends '@' to dir name).
+                              List creates symlinks: service@child -> service@.
+                            '';
+                          };
+
                           setup = lib.mkOption {
                             type = lib.types.str;
                             default = "";
@@ -160,7 +198,76 @@
                       }
                     )
                   );
-                  default = { };
+                  default = {
+                    # === PRE-EXISTING SPECIAL SERVICES ===
+
+                    # 1. Default LOG service (catch-all)
+                    LOG = {
+                      running = lib.mkDefault true;
+                      run = lib.mkDefault ''
+                        #!/usr/bin/env bash
+                        LOGFILE="/var/log/nitro/default.log"
+                        mkdir -p "$(dirname "$LOGFILE")"
+                        while IFS= read -r line || [[ -n "$line" ]]; do
+                          echo "[$(date +'%%Y-%%m-%%dT%%H:%%M:%%S%%z')] $line" >> "$LOGFILE"
+                        done
+                      '';
+                    };
+
+                    # 2. LOG@ template (parameterized logging)
+                    "LOG@" = {
+                      template = lib.mkDefault true;
+                      running = lib.mkDefault true;
+                      run = lib.mkDefault ''
+                        #!/usr/bin/env bash
+                        SERVICE_NAME="$1"
+                        LOGFILE="/var/log/nitro/$SERVICE_NAME.log"
+                        mkdir -p "$(dirname "$LOGFILE")"
+                        while IFS= read -r line || [[ -n "$line" ]]; do
+                          echo "[$(date +'%%Y-%%m-%%dT%%H:%%M:%%S%%z')] [$SERVICE_NAME] $line" >> "$LOGFILE"
+                        done
+                      '';
+                    };
+
+                    # 3. SYS service (system lifecycle)
+                    SYS = {
+                      running = lib.mkDefault true;
+                      setup = lib.mkDefault ''
+                        #!/usr/bin/env bash
+                        timeout 30 sh -c 'until ping -c1 8.8.8.8 >/dev/null 2>&1; do sleep 1; done' || true
+                        mkdir -p /var/log/nitro /var/run/nitro
+                        nitroctl up LOG
+                        echo "SYS: Setup complete"
+                      '';
+                      finish = lib.mkDefault ''
+                        #!/usr/bin/env bash
+                        # SYS/finish: Graceful shutdown preparation
+                        echo "SYS: Beginning shutdown sequence - $(date)"
+                        sync
+                      '';
+                      final = lib.mkDefault ''
+                        #!/usr/bin/env bash
+                        # SYS/final: Post-termination cleanup
+                        echo "SYS: Final cleanup - $(date)" > /var/log/nitro/final.log
+                        sync
+                      '';
+                      fatal = lib.mkDefault ''
+                        #!/usr/bin/env bash
+                        # SYS/fatal: Unrecoverable error handler
+                        # Log the panic
+                        echo "FATAL ERROR at $(date)" > /var/log/nitro/fatal.log
+                        echo "Nitro supervisor failed catastrophically" > /var/log/nitro/fatal.log
+                        # Try graceful recovery first
+                        if nitroctl restart SYS; then
+                          echo "SYS: Recovered from fatal error" > /var/log/nitro/fatal.log
+                          exit 0
+                        fi
+                        exec /bin/sh -l
+                      '';
+                      reincarnation = lib.mkDefault ''
+                      '';
+                    };
+                  };
                   description = "Nitro services, keyed by service name.";
                 };
               };
