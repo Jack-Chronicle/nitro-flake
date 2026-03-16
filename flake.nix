@@ -9,118 +9,86 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      ...
-    }:
+  outputs = { self, nixpkgs, ... }:
     {
       nixosModules = {
-        default =
-          {
-            config,
-            lib,
-            pkgs,
-            ...
-          }:
+        default = { config, lib, pkgs, ... }:
           let
             cfg = config.services.nitroctl;
-
-            servicesDir = pkgs.runCommand "nitro-services" { } (
+            mkServiceDir = name: s:
               let
-                svcList = lib.attrsToList cfg.services;
-                mkService = svc:
-                  let
-                    s = svc.value;
-                    # Determine if template and get children
-                    isRegularService = s.template == false || !(s.template ? true);
-                    children = if lib.isList s.template
-                               then s.template
-                               else if s.template == true
-                                    then []
-                                    else [];
-
-                    name = if isRegularService
-                           then svc.name
-                           else if (!isRegularService && lib.hasSuffix "@") svc.name
-                                then svc.name
-                                else "${svc.name}@";
-
-                  in
-                  ''
-                    # Service Directories
-                    mkdir -p "$out/${name}"
-
-                    ${lib.concatMapStrings (child: ''
-                      ln -s "$out/${name}" "$out/${name}${child}"
-                    '') children}
-
-                    # Service scripts
-                    ## running -> presence/absence of 'down'
-                    ${lib.optionalString (!s.running) ''
-                      touch "$out/${name}/down"
-                    ''}
-
-                    ## setup
-                    ${lib.optionalString (s.setup != null) ''
-                      cat > "$out/${name}/setup" << 'EOF'
-                    ${toString s.setup}
-                    EOF
-                      chmod +x "$out/${name}/setup"
-                    ''}
-
-                    ## run
-                    ${lib.optionalString (s.run != null) ''
-                      cat > "$out/${name}/run" << 'EOF'
-                    ${toString s.run}
-                    EOF
-                      chmod +x "$out/${name}/run"
-                    ''}
-
-                    ## finish
-                    ${lib.optionalString (s.finish != null) ''
-                      cat > "$out/${name}/finish" << 'EOF'
-                    ${toString s.finish}
-                    EOF
-                      chmod +x "$out/${name}/finish"
-                    ''}
-
-                    ## final
-                    ${lib.optionalString (s.finish != null) ''
-                      cat > "$out/${name}/final" << 'EOF'
-                    ${toString s.final}
-                    EOF
-                      chmod +x "$out/${name}/final"
-                    ''}
-
-                    ## fatal
-                    ${lib.optionalString (s.finish != null) ''
-                      cat > "$out/${name}/fatal" << 'EOF'
-                    ${toString s.fatal}
-                    EOF
-                      chmod +x "$out/${name}/fatal"
-                    ''}
-
-                    ## reincarnation
-                    ${lib.optionalString (s.finish != null) ''
-                      cat > "$out/${name}/reincarnation" << 'EOF'
-                    ${toString s.reincarnation}
-                    EOF
-                      chmod +x "$out/${name}/reincarnation"
-                    ''}
-
-                    ## log
-                    ${lib.optionalString (s.log != null) ''
-                      ln -s ${toString s.log} "$out/${name}/log"
-                    ''}
-                  '';
+                isRegularService = !(s.template or false);
+                serviceName = if isRegularService
+                              then name
+                              else if lib.hasSuffix "@" name
+                                   then name
+                                   else "${name}@";
+                children = if lib.isList s.template then s.template else [];
               in
-              ''
-                mkdir -p "$out"
-                ${lib.concatMapStrings mkService svcList}
-              ''
-            );
+              pkgs.runCommand "nitro-${serviceName}" {} ''
+                mkdir -p "$out/${serviceName}"
+
+                ${lib.concatMapStrings (child: ''
+                  ln -s "$out/${serviceName}" "$out/${serviceName}${child}"
+                '') children}
+
+                ${lib.optionalString (!s.running) ''
+                  touch "$out/${serviceName}/down"
+                ''}
+
+                ${lib.optionalString (s.setup != null) ''
+                  cat > "$out/${serviceName}/setup" << 'EOF'
+                ${lib.toString s.setup}
+                EOF
+                  chmod +x "$out/${serviceName}/setup"
+                ''}
+
+                ## run
+                ${lib.optionalString (s.run != null) ''
+                  cat > "$out/${name}/run" << 'EOF'
+                ${lib.toString s.run}
+                EOF
+                  chmod +x "$out/${name}/run"
+                ''}
+
+                ## finish
+                ${lib.optionalString (s.finish != null) ''
+                  cat > "$out/${name}/finish" << 'EOF'
+                ${lib.toString s.finish}
+                EOF
+                  chmod +x "$out/${name}/finish"
+                ''}
+
+                ## final
+                ${lib.optionalString (s.finish != null) ''
+                  cat > "$out/${name}/final" << 'EOF'
+                ${lib.toString s.final}
+                EOF
+                  chmod +x "$out/${name}/final"
+                ''}
+
+                ## fatal
+                ${lib.optionalString (s.finish != null) ''
+                  cat > "$out/${name}/fatal" << 'EOF'
+                ${lib.toString s.fatal}
+                EOF
+                  chmod +x "$out/${name}/fatal"
+                ''}
+
+                ## reincarnation
+                ${lib.optionalString (s.finish != null) ''
+                  cat > "$out/${name}/reincarnation" << 'EOF'
+                ${lib.toString s.reincarnation}
+                EOF
+                  chmod +x "$out/${name}/reincarnation"
+                ''}
+
+                ## log
+                ${lib.optionalString (s.log != null) ''
+                  ln -s ${lib.toString s.log} "$out/${name}/log"
+                ''}
+              '';
+
           in
           {
             options = {
@@ -356,8 +324,10 @@
                 };
               };
 
-              # Derive the etc key from cfg.path.
-              environment.etc."${lib.removePrefix "/etc/" cfg.path}/services".source = servicesDir;
+              environment.etc."${lib.removePrefix "/etc/" cfg.path}/services".source = pkgs.linkFarm "nitro-services" (lib.mapAttrsToList (name: s: {
+                inherit name;
+                path = (mkServiceDir name s);
+              }) cfg.services);
 
               fileSystems."/run/nitro" = {
                 device = "tmpfs";
