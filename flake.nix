@@ -331,17 +331,15 @@
               environment.etc."${lib.removePrefix "/etc/" cfg.path}/services".source = pkgs.linkFarm "nitro-services" (
                 lib.mapAttrsToList (name: s:
                   let
-                  isRegularService = s.template == false || !(s.template ? true);
-
-                  serviceName = if isRegularService
-                                then name
-                                else if lib.hasSuffix "@" name
-                                     then name
-                                     else "${name}@";
-
+                    isRegularService = s.template == false || !(s.template ? true);
+                    serviceName = if isRegularService
+                                  then name
+                                  else if lib.hasSuffix "@" name
+                                       then name
+                                       else "${name}@";
                   in {
                     inherit serviceName;
-                    path = (mkServiceDir name s);
+                    path = mkServiceDir name s;
                   }
                 ) cfg.services
               );
