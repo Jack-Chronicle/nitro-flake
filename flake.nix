@@ -17,13 +17,18 @@
             cfg = config.services.nitroctl;
             mkServiceDir = name: s:
               let
-                isRegularService = !(s.template or false);
-                serviceName = if isRegularService
-                              then name
-                              else if lib.hasSuffix "@" name
-                                   then name
-                                   else "${name}@";
-                children = if lib.isList s.template then s.template else [];
+              isRegularService = s.template == false || !(s.template ? true);
+              children = if lib.isList s.template
+                         then s.template
+                         else if s.template == true
+                              then []
+                              else [];
+
+              serviceName = if isRegularService
+                            then name
+                            else if lib.hasSuffix "@" name
+                                 then name
+                                 else "${name}@";
               in
               pkgs.runCommand "nitro-${serviceName}" {} ''
                 mkdir -p "$out/${serviceName}"
