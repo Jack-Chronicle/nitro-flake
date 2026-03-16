@@ -285,7 +285,35 @@
                     EOF
                       chmod +x "$out/${serviceName}/run"
                     ''}
-                    # ... add other scripts (finish, final, etc.)
+
+                    ${lib.optionalString (s.finish != null) ''
+                      cat > "$out/${serviceName}/finish" << 'EOF'
+                    ${s.finish}
+                    EOF
+                      chmod +x "$out/${serviceName}/finish"
+                    ''}
+
+                    ${lib.optionalString (s.final != null) ''
+                      cat > "$out/${serviceName}/final" << 'EOF'
+                    ${s.final}
+                    EOF
+                      chmod +x "$out/${serviceName}/final"
+                    ''}
+
+                    ${lib.optionalString (s.fatal != null) ''
+                      cat > "$out/${serviceName}/fatal" << 'EOF'
+                    ${s.fatal}
+                    EOF
+                      chmod +x "$out/${serviceName}/fatal"
+                    ''}
+
+                    ${lib.optionalString (s.reincarnation != null) ''
+                      cat > "$out/${serviceName}/reincarnation" << 'EOF'
+                    ${s.reincarnation}
+                    EOF
+                      chmod +x "$out/${serviceName}/reincarnation"
+                    ''}
+
                   ''
                 ) cfg.services)
               );
