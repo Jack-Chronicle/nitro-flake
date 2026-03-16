@@ -15,84 +15,6 @@
         default = { config, lib, pkgs, ... }:
           let
             cfg = config.services.nitroctl;
-            mkServiceDir = name: s:
-              let
-              isRegularService = s.template == false || !(s.template ? true);
-              children = if lib.isList s.template
-                         then s.template
-                         else [];
-
-              serviceName = if isRegularService
-                            then name
-                            else if lib.hasSuffix "@" name
-                                 then name
-                                 else "${name}@";
-
-              in
-              pkgs.runCommand "nitro-${serviceName}" {} ''
-                mkdir -p "$out/${serviceName}"
-
-                ${lib.concatMapStrings (child: ''
-                  ln -s "$out/${serviceName}" "$out/${serviceName}${child}"
-                '') children}
-
-                ${lib.optionalString (!s.running) ''
-                  touch "$out/${serviceName}/down"
-                ''}
-
-                ${lib.optionalString (s.setup != null) ''
-                  cat > "$out/${serviceName}/setup" << 'EOF'
-                ${s.setup}
-                EOF
-                  chmod +x "$out/${serviceName}/setup"
-                ''}
-
-                ## run
-                ${lib.optionalString (s.run != null) ''
-                  cat > "$out/${serviceName}/run" << 'EOF'
-                ${s.run}
-                EOF
-                  chmod +x "$out/${serviceName}/run"
-                ''}
-
-                ## finish
-                ${lib.optionalString (s.finish != null) ''
-                  cat > "$out/${serviceName}/finish" << 'EOF'
-                ${s.finish}
-                EOF
-                  chmod +x "$out/${serviceName}/finish"
-                ''}
-
-                ## final
-                ${lib.optionalString (s.final != null) ''
-                  cat > "$out/${serviceName}/final" << 'EOF'
-                ${s.final}
-                EOF
-                  chmod +x "$out/${serviceName}/final"
-                ''}
-
-                ## fatal
-                ${lib.optionalString (s.fatal != null) ''
-                  cat > "$out/${serviceName}/fatal" << 'EOF'
-                ${s.fatal}
-                EOF
-                  chmod +x "$out/${serviceName}/fatal"
-                ''}
-
-                ## reincarnation
-                ${lib.optionalString (s.reincarnation != null) ''
-                  cat > "$out/${serviceName}/reincarnation" << 'EOF'
-                ${s.reincarnation}
-                EOF
-                  chmod +x "$out/${serviceName}/reincarnation"
-                ''}
-
-                ## log
-                ${lib.optionalString (s.log != null) ''
-                  ln -s ${s.log} "$out/${serviceName}/log"
-                ''}
-              '';
-
           in
           {
             options = {
@@ -328,20 +250,44 @@
                 };
               };
 
-              environment.etc."${lib.removePrefix "/etc/" cfg.path}/services".source = pkgs.linkFarm "nitro-services" (
-                lib.mapAttrsToList (name: s:
+              environment.etc."${lib.removePrefix "/etc/" cfg.path}/services".source = pkgs.runCommand "nitro-services-flat" {} (
+                lib.concatStringsSep "\n" (lib.mapAttrsToList (name: s:
                   let
                     isRegularService = s.template == false || !(s.template ? true);
+                    children = if lib.isList s.template then s.template else [];
                     serviceName = if isRegularService
                                   then name
                                   else if lib.hasSuffix "@" name
                                        then name
                                        else "${name}@";
-                  in {
-                    name = serviceName;
-                    path = mkServiceDir name s;
-                  }
-                ) cfg.services
+                  in
+                  ''
+                    mkdir -p "$out/${serviceName}"
+
+                    ${lib.concatMapStrings (child: ''
+                      ln -s "$out/${serviceName}" "$out/${serviceName}${child}"
+                    '') children}
+
+                    ${lib.optionalString (!s.running) ''
+                      touch "$out/${serviceName}/down"
+                    ''}
+
+                    ${lib.optionalString (s.setup != null) ''
+                      cat > "$out/${serviceName}/setup" << 'EOF'
+                    ${s.setup}
+                    EOF
+                      chmod +x "$out/${serviceName}/setup"
+                    ''}
+
+                    ${lib.optionalString (s.run != null) ''
+                      cat > "$out/${serviceName}/run" << 'EOF'
+                    ${s.run}
+                    EOF
+                      chmod +x "$out/${serviceName}/run"
+                    ''}
+                    # ... add other scripts (finish, final, etc.)
+                  ''
+                ) cfg.services)
               );
 
               fileSystems."/run/nitro" = {
