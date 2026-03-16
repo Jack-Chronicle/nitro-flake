@@ -63,56 +63,56 @@
                     ''}
 
                     ## setup
-                    ${lib.optional (s.setup != null) ''
+                    ${lib.optionalString (s.setup != null) ''
                       cat > "$out/${name}/setup" << 'EOF'
-                    ${s.setup}
+                    ${lib.toString s.setup}
                     EOF
                       chmod +x "$out/${name}/setup"
                     ''}
 
                     ## run
-                    ${lib.optional (s.run != null) ''
+                    ${lib.optionalString (s.run != null) ''
                       cat > "$out/${name}/run" << 'EOF'
-                    ${s.run}
+                    ${lib.toString s.run}
                     EOF
                       chmod +x "$out/${name}/run"
                     ''}
 
                     ## finish
-                    ${lib.optional (s.finish != null) ''
+                    ${lib.optionalString (s.finish != null) ''
                       cat > "$out/${name}/finish" << 'EOF'
-                    ${s.finish}
+                    ${lib.toString s.finish}
                     EOF
                       chmod +x "$out/${name}/finish"
                     ''}
 
                     ## final
-                    ${lib.optional (s.finish != null) ''
+                    ${lib.optionalString (s.finish != null) ''
                       cat > "$out/${name}/final" << 'EOF'
-                    ${s.final}
+                    ${lib.toString s.final}
                     EOF
                       chmod +x "$out/${name}/final"
                     ''}
 
                     ## fatal
-                    ${lib.optional (s.finish != null) ''
+                    ${lib.optionalString (s.finish != null) ''
                       cat > "$out/${name}/fatal" << 'EOF'
-                    ${s.fatal}
+                    ${lib.toString s.fatal}
                     EOF
                       chmod +x "$out/${name}/fatal"
                     ''}
 
                     ## reincarnation
-                    ${lib.optional (s.finish != null) ''
+                    ${lib.optionalString (s.finish != null) ''
                       cat > "$out/${name}/reincarnation" << 'EOF'
-                    ${s.reincarnation}
+                    ${lib.toString s.reincarnation}
                     EOF
                       chmod +x "$out/${name}/reincarnation"
                     ''}
 
                     ## log
-                    ${lib.optional (s.log != null) ''
-                      ln -s ${s.log} "$out/${name}/log"
+                    ${lib.optionalString (s.log != null) ''
+                      ln -s ${lib.toString s.log} "$out/${name}/log"
                     ''}
                   '';
               in
