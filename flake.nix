@@ -187,6 +187,33 @@
                             '';
                           };
 
+                          final = lib.mkOption {
+                            type = lib.types.str;
+                            default = "";
+                            description = ''
+                              Optional executable script run after the run process finishes.
+                              Receives exit status and terminating signal as arguments.
+                            '';
+                          };
+
+                          fatal = lib.mkOption {
+                            type = lib.types.str;
+                            default = "";
+                            description = ''
+                              Optional executable script run after the run process finishes.
+                              Receives exit status and terminating signal as arguments.
+                            '';
+                          };
+
+                          reincarnation = lib.mkOption {
+                            type = lib.types.str;
+                            default = "";
+                            description = ''
+                              Optional executable script run after the run process finishes.
+                              Receives exit status and terminating signal as arguments.
+                            '';
+                          };
+
                           log = lib.mkOption {
                             type = lib.types.nullOr lib.types.path;
                             default = null;
@@ -203,7 +230,6 @@
 
                     # 1. Default LOG service (catch-all)
                     LOG = {
-                      running = lib.mkDefault true;
                       run = lib.mkDefault ''
                         #!/usr/bin/env bash
                         LOGFILE="/var/log/nitro/default.log"
@@ -217,7 +243,6 @@
                     # 2. LOG@ template (parameterized logging)
                     "LOG@" = {
                       template = lib.mkDefault true;
-                      running = lib.mkDefault true;
                       run = lib.mkDefault ''
                         #!/usr/bin/env bash
                         SERVICE_NAME="$1"
@@ -231,7 +256,6 @@
 
                     # 3. SYS service (system lifecycle)
                     SYS = {
-                      running = lib.mkDefault true;
                       setup = lib.mkDefault ''
                         #!/usr/bin/env bash
                         timeout 30 sh -c 'until ping -c1 8.8.8.8 >/dev/null 2>&1; do sleep 1; done' || true
