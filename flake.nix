@@ -35,7 +35,9 @@
                     name = svc.name;  # "convert" or "convert@"
                     s = svc.value;
 
-                    # Smart base name: append '@' only if not already present
+                    # Determine if template and get children
+                    isRegularService = s.template == false || !(s.template ? true);
+                    isTemplateWithChildren = lib.isList s.template;
                     baseName = if lib.hasSuffix "@" name
                                then name
                                else "${name}@";
@@ -49,14 +51,12 @@
                   in
                   ''
                     # Service Directories
-                    ${lib.optionalString (!s.template == false) ''
+                    ${lib.optionalString (isRegularService == true) ''
                       mkdir -p "$out/${name}"
                     ''}
-                    ${lib.optionalString (!s.template != false) ''
-                      # Template Creation (always ends with '@')
+                    ${lib.optionalString (isRegularService != true) ''
                       mkdir -p "$out/${baseName}"
-
-                      ${lib.optionalString (!s.template != true) ''
+                      ${lib.optionalString (isTemplateWithChildren == true) ''
                         # Child symlinks (alongside template, not inside)
                         ${lib.concatMapStrings (child: ''
                           ln -s "$out/${baseName}" "$out/${baseName}${child}"
@@ -92,6 +92,30 @@
                     ${s.finish}
                     EOF
                       chmod +x "$out/${baseName}/finish"
+                    ''}
+
+                    ## final
+                    ${lib.optionalString (s.finish != "") ''
+                      cat > "$out/${baseName}/final" << 'EOF'
+                    ${s.final}
+                    EOF
+                      chmod +x "$out/${baseName}/final"
+                    ''}
+
+                    ## fatal
+                    ${lib.optionalString (s.finish != "") ''
+                      cat > "$out/${baseName}/fatal" << 'EOF'
+                    ${s.fatal}
+                    EOF
+                      chmod +x "$out/${baseName}/fatal"
+                    ''}
+
+                    ## reincarnation
+                    ${lib.optionalString (s.finish != "") ''
+                      cat > "$out/${baseName}/reincarnation" << 'EOF'
+                    ${s.reincarnation}
+                    EOF
+                      chmod +x "$out/${baseName}/reincarnation"
                     ''}
 
                     ## log
@@ -191,8 +215,8 @@
                             type = lib.types.str;
                             default = "";
                             description = ''
-                              Optional executable script run after the run process finishes.
-                              Receives exit status and terminating signal as arguments.
+                              Optional executable script for SYS
+                              Runs after all services terminate.
                             '';
                           };
 
@@ -200,8 +224,8 @@
                             type = lib.types.str;
                             default = "";
                             description = ''
-                              Optional executable script run after the run process finishes.
-                              Receives exit status and terminating signal as arguments.
+                              Optional executable script for SYS
+                              Runs if unrecoverable error occurs.
                             '';
                           };
 
@@ -209,8 +233,8 @@
                             type = lib.types.str;
                             default = "";
                             description = ''
-                              Optional executable script run after the run process finishes.
-                              Receives exit status and terminating signal as arguments.
+                              Optional executable script for SYS
+                              Is executed into instead of a shutdown.
                             '';
                           };
 
