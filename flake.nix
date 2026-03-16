@@ -63,7 +63,7 @@
                     ''}
 
                     ## setup
-                    ${lib.optionalString (s.setup != null) ''
+                    ${lib.optional (s.setup != null) ''
                       cat > "$out/${name}/setup" << 'EOF'
                     ${s.setup}
                     EOF
@@ -71,7 +71,7 @@
                     ''}
 
                     ## run
-                    ${lib.optionalString (s.run != null) ''
+                    ${lib.optional (s.run != null) ''
                       cat > "$out/${name}/run" << 'EOF'
                     ${s.run}
                     EOF
@@ -79,7 +79,7 @@
                     ''}
 
                     ## finish
-                    ${lib.optionalString (s.finish != null) ''
+                    ${lib.optional (s.finish != null) ''
                       cat > "$out/${name}/finish" << 'EOF'
                     ${s.finish}
                     EOF
@@ -87,7 +87,7 @@
                     ''}
 
                     ## final
-                    ${lib.optionalString (s.finish != null) ''
+                    ${lib.optional (s.finish != null) ''
                       cat > "$out/${name}/final" << 'EOF'
                     ${s.final}
                     EOF
@@ -95,7 +95,7 @@
                     ''}
 
                     ## fatal
-                    ${lib.optionalString (s.finish != null) ''
+                    ${lib.optional (s.finish != null) ''
                       cat > "$out/${name}/fatal" << 'EOF'
                     ${s.fatal}
                     EOF
@@ -103,7 +103,7 @@
                     ''}
 
                     ## reincarnation
-                    ${lib.optionalString (s.finish != null) ''
+                    ${lib.optional (s.finish != null) ''
                       cat > "$out/${name}/reincarnation" << 'EOF'
                     ${s.reincarnation}
                     EOF
@@ -111,7 +111,7 @@
                     ''}
 
                     ## log
-                    ${lib.optionalString (s.log != null) ''
+                    ${lib.optional (s.log != null) ''
                       ln -s ${s.log} "$out/${name}/log"
                     ''}
                   '';
