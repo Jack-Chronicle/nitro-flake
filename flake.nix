@@ -33,10 +33,6 @@
                 mkService = svc:
                   let
                     s = svc.value;
-                    name = if lib.hasSuffix "@" svc.name
-                           then svc.name
-                           else "${svc.name}@";
-
                     # Determine if template and get children
                     isRegularService = s.template == false || !(s.template ? true);
                     children = if lib.isList s.template
@@ -44,6 +40,14 @@
                                else if s.template == true
                                     then []
                                     else [];
+
+                    name = if isRegularService
+                           then svc.name
+                           else
+                             if (!isRegularService && lib.hasSuffix "@") svc.name
+                             then svc.name
+                             else "${svc.name}@";
+
                   in
                   ''
                     # Service Directories
