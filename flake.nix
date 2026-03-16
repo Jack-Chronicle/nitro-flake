@@ -32,17 +32,13 @@
                 svcList = lib.attrsToList cfg.services;
                 mkService = svc:
                   let
-                    name = svc.name;  # "convert" or "convert@"
                     s = svc.value;
+                    name = if lib.hasSuffix "@" svc.name
+                           then svc.name
+                           else "${svc.name}@";
 
                     # Determine if template and get children
                     isRegularService = s.template == false || !(s.template ? true);
-                    isTemplateWithChildren = lib.isList s.template;
-                    baseName = if lib.hasSuffix "@" name
-                               then name
-                               else "${name}@";
-
-                    # Children list: bool → [] | list → list
                     children = if lib.isList s.template
                                then s.template
                                else if s.template == true
@@ -51,76 +47,70 @@
                   in
                   ''
                     # Service Directories
-                    ${lib.optionalString (isRegularService == true) ''
+                    ${lib.optionalString isRegularService ''
                       mkdir -p "$out/${name}"
                     ''}
-                    ${lib.optionalString (isRegularService != true) ''
-                      mkdir -p "$out/${baseName}"
-                      ${lib.optionalString (isTemplateWithChildren == true) ''
-                        # Child symlinks (alongside template, not inside)
-                        ${lib.concatMapStrings (child: ''
-                          ln -s "$out/${baseName}" "$out/${baseName}${child}"
-                        '') children}
-                      ''}
-                    ''}
+                    ${lib.concatMapStrings (child: ''
+                      ln -s "$out/${name}" "$out/${name}${child}"
+                    '') children}
 
                     # Service scripts
                     ## running -> presence/absence of 'down'
                     ${lib.optionalString (!s.running) ''
-                      touch "$out/${baseName}/down"
+                      touch "$out/${name}/down"
                     ''}
 
                     ## setup
                     ${lib.optionalString (s.setup != "") ''
-                      cat > "$out/${baseName}/setup" << 'EOF'
+                      cat > "$out/${name}/setup" << 'EOF'
                     ${s.setup}
                     EOF
-                      chmod +x "$out/${baseName}/setup"
+                      chmod +x "$out/${name}/setup"
                     ''}
 
                     ## run
                     ${lib.optionalString (s.run != "") ''
-                      cat > "$out/${baseName}/run" << 'EOF'
+                      cat > "$out/${name}/run" << 'EOF'
                     ${s.run}
                     EOF
-                      chmod +x "$out/${baseName}/run"
+                      chmod +x "$out/${name}/run"
                     ''}
 
                     ## finish
                     ${lib.optionalString (s.finish != "") ''
-                      cat > "$out/${baseName}/finish" << 'EOF'
+                      cat > "$out/${name}/finish" << 'EOF'
                     ${s.finish}
                     EOF
-                      chmod +x "$out/${baseName}/finish"
+                      chmod +x "$out/${name}/finish"
                     ''}
 
                     ## final
                     ${lib.optionalString (s.finish != "") ''
-                      cat > "$out/${baseName}/final" << 'EOF'
+                      cat > "$out/${name}/final" << 'EOF'
                     ${s.final}
                     EOF
-                      chmod +x "$out/${baseName}/final"
+                      chmod +x "$out/${name}/final"
                     ''}
 
                     ## fatal
                     ${lib.optionalString (s.finish != "") ''
-                      cat > "$out/${baseName}/fatal" << 'EOF'
+                      cat > "$out/${name}/fatal" << 'EOF'
                     ${s.fatal}
                     EOF
-                      chmod +x "$out/${baseName}/fatal"
+                      chmod +x "$out/${name}/fatal"
                     ''}
 
                     ## reincarnation
                     ${lib.optionalString (s.finish != "") ''
-                      cat > "$out/${baseName}/reincarnation" << 'EOF'
+                      cat > "$out/${name}/reincarnation" << 'EOF'
                     ${s.reincarnation}
                     EOF
-                      chmod +x "$out/${baseName}/reincarnation"
+                      chmod +x "$out/${name}/reincarnation"
                     ''}
 
                     ## log
                     ${lib.optionalString (s.log != null) ''
-                      ln -s ${s.log} "$out/${baseName}/log"
+                      ln -s ${s.log} "$out/${name}/log"
                     ''}
                   '';
               in
