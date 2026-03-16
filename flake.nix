@@ -60,7 +60,7 @@
                 ''}
 
                 ## final
-                ${lib.optionalString (s.finish != null) ''
+                ${lib.optionalString (s.final != null) ''
                   cat > "$out/${serviceName}/final" << 'EOF'
                 ${s.final}
                 EOF
@@ -68,7 +68,7 @@
                 ''}
 
                 ## fatal
-                ${lib.optionalString (s.finish != null) ''
+                ${lib.optionalString (s.fatal != null) ''
                   cat > "$out/${serviceName}/fatal" << 'EOF'
                 ${s.fatal}
                 EOF
@@ -76,7 +76,7 @@
                 ''}
 
                 ## reincarnation
-                ${lib.optionalString (s.finish != null) ''
+                ${lib.optionalString (s.reincarnation != null) ''
                   cat > "$out/${serviceName}/reincarnation" << 'EOF'
                 ${s.reincarnation}
                 EOF
