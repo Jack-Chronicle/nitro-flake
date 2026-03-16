@@ -338,7 +338,7 @@
                                        then name
                                        else "${name}@";
                   in {
-                    inherit serviceName;
+                    name = serviceName;
                     path = mkServiceDir name s;
                   }
                 ) cfg.services
