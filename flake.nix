@@ -50,9 +50,7 @@
                   in
                   ''
                     # Service Directories
-                    ${lib.optionalString isRegularService ''
-                      mkdir -p "$out/${name}"
-                    ''}
+                    mkdir -p "$out/${name}"
                     ${lib.concatMapStrings (child: ''
                       ln -s "$out/${name}" "$out/${name}${child}"
                     '') children}
