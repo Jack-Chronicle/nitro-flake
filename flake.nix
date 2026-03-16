@@ -43,10 +43,9 @@
 
                     name = if isRegularService
                            then svc.name
-                           else
-                             if (!isRegularService && lib.hasSuffix "@") svc.name
-                             then svc.name
-                             else "${svc.name}@";
+                           else if (!isRegularService && lib.hasSuffix "@") svc.name
+                                then svc.name
+                                else "${svc.name}@";
 
                   in
                   ''
