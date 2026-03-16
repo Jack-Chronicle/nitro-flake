@@ -20,9 +20,7 @@
               isRegularService = s.template == false || !(s.template ? true);
               children = if lib.isList s.template
                          then s.template
-                         else if s.template == true
-                              then []
-                              else [];
+                         else [];
 
               serviceName = if isRegularService
                             then name
