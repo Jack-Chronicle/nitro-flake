@@ -45,47 +45,47 @@
 
                 ## run
                 ${lib.optionalString (s.run != null) ''
-                  cat > "$out/${name}/run" << 'EOF'
+                  cat > "$out/${serviceName}/run" << 'EOF'
                 ${s.run}
                 EOF
-                  chmod +x "$out/${name}/run"
+                  chmod +x "$out/${serviceName}/run"
                 ''}
 
                 ## finish
                 ${lib.optionalString (s.finish != null) ''
-                  cat > "$out/${name}/finish" << 'EOF'
+                  cat > "$out/${serviceName}/finish" << 'EOF'
                 ${s.finish}
                 EOF
-                  chmod +x "$out/${name}/finish"
+                  chmod +x "$out/${serviceName}/finish"
                 ''}
 
                 ## final
                 ${lib.optionalString (s.finish != null) ''
-                  cat > "$out/${name}/final" << 'EOF'
+                  cat > "$out/${serviceName}/final" << 'EOF'
                 ${s.final}
                 EOF
-                  chmod +x "$out/${name}/final"
+                  chmod +x "$out/${serviceName}/final"
                 ''}
 
                 ## fatal
                 ${lib.optionalString (s.finish != null) ''
-                  cat > "$out/${name}/fatal" << 'EOF'
+                  cat > "$out/${serviceName}/fatal" << 'EOF'
                 ${s.fatal}
                 EOF
-                  chmod +x "$out/${name}/fatal"
+                  chmod +x "$out/${serviceName}/fatal"
                 ''}
 
                 ## reincarnation
                 ${lib.optionalString (s.finish != null) ''
-                  cat > "$out/${name}/reincarnation" << 'EOF'
+                  cat > "$out/${serviceName}/reincarnation" << 'EOF'
                 ${s.reincarnation}
                 EOF
-                  chmod +x "$out/${name}/reincarnation"
+                  chmod +x "$out/${serviceName}/reincarnation"
                 ''}
 
                 ## log
                 ${lib.optionalString (s.log != null) ''
-                  ln -s ${s.log} "$out/${name}/log"
+                  ln -s ${s.log} "$out/${serviceName}/log"
                 ''}
               '';
 
