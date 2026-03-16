@@ -322,11 +322,17 @@
                 device = "tmpfs";
                 fsType = "tmpfs";
               };
-
               systemd.tmpfiles.settings = {
                 "21-nitro-run" = {
                   "/etc/${lib.removePrefix "/etc/" cfg.path}" = {
                     Z = {
+                      mode = "0775";
+                      user = cfg.user;
+                      group = cfg.group;
+                    };
+                  };
+                  "/var/log/nitro" = {
+                    d = {
                       mode = "0775";
                       user = cfg.user;
                       group = cfg.group;
