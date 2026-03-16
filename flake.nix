@@ -65,7 +65,7 @@
                     ## setup
                     ${lib.optionalString (s.setup != null) ''
                       cat > "$out/${name}/setup" << 'EOF'
-                    ${lib.toString s.setup}
+                    ${toString s.setup}
                     EOF
                       chmod +x "$out/${name}/setup"
                     ''}
@@ -73,7 +73,7 @@
                     ## run
                     ${lib.optionalString (s.run != null) ''
                       cat > "$out/${name}/run" << 'EOF'
-                    ${lib.toString s.run}
+                    ${toString s.run}
                     EOF
                       chmod +x "$out/${name}/run"
                     ''}
@@ -81,7 +81,7 @@
                     ## finish
                     ${lib.optionalString (s.finish != null) ''
                       cat > "$out/${name}/finish" << 'EOF'
-                    ${lib.toString s.finish}
+                    ${toString s.finish}
                     EOF
                       chmod +x "$out/${name}/finish"
                     ''}
@@ -89,7 +89,7 @@
                     ## final
                     ${lib.optionalString (s.finish != null) ''
                       cat > "$out/${name}/final" << 'EOF'
-                    ${lib.toString s.final}
+                    ${toString s.final}
                     EOF
                       chmod +x "$out/${name}/final"
                     ''}
@@ -97,7 +97,7 @@
                     ## fatal
                     ${lib.optionalString (s.finish != null) ''
                       cat > "$out/${name}/fatal" << 'EOF'
-                    ${lib.toString s.fatal}
+                    ${toString s.fatal}
                     EOF
                       chmod +x "$out/${name}/fatal"
                     ''}
@@ -105,14 +105,14 @@
                     ## reincarnation
                     ${lib.optionalString (s.finish != null) ''
                       cat > "$out/${name}/reincarnation" << 'EOF'
-                    ${lib.toString s.reincarnation}
+                    ${toString s.reincarnation}
                     EOF
                       chmod +x "$out/${name}/reincarnation"
                     ''}
 
                     ## log
                     ${lib.optionalString (s.log != null) ''
-                      ln -s ${lib.toString s.log} "$out/${name}/log"
+                      ln -s ${toString s.log} "$out/${name}/log"
                     ''}
                   '';
               in
