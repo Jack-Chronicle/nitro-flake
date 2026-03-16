@@ -51,6 +51,7 @@
                   ''
                     # Service Directories
                     mkdir -p "$out/${name}"
+
                     ${lib.concatMapStrings (child: ''
                       ln -s "$out/${name}" "$out/${name}${child}"
                     '') children}
@@ -62,7 +63,7 @@
                     ''}
 
                     ## setup
-                    ${lib.optionalString (s.setup != "") ''
+                    ${lib.optionalString (s.setup != ""||null) ''
                       cat > "$out/${name}/setup" << 'EOF'
                     ${s.setup}
                     EOF
@@ -70,7 +71,7 @@
                     ''}
 
                     ## run
-                    ${lib.optionalString (s.run != "") ''
+                    ${lib.optionalString (s.run != ""||null) ''
                       cat > "$out/${name}/run" << 'EOF'
                     ${s.run}
                     EOF
@@ -78,7 +79,7 @@
                     ''}
 
                     ## finish
-                    ${lib.optionalString (s.finish != "") ''
+                    ${lib.optionalString (s.finish != ""||null) ''
                       cat > "$out/${name}/finish" << 'EOF'
                     ${s.finish}
                     EOF
@@ -86,7 +87,7 @@
                     ''}
 
                     ## final
-                    ${lib.optionalString (s.finish != "") ''
+                    ${lib.optionalString (s.finish != ""||null) ''
                       cat > "$out/${name}/final" << 'EOF'
                     ${s.final}
                     EOF
@@ -94,7 +95,7 @@
                     ''}
 
                     ## fatal
-                    ${lib.optionalString (s.finish != "") ''
+                    ${lib.optionalString (s.finish != ""||null) ''
                       cat > "$out/${name}/fatal" << 'EOF'
                     ${s.fatal}
                     EOF
@@ -102,7 +103,7 @@
                     ''}
 
                     ## reincarnation
-                    ${lib.optionalString (s.finish != "") ''
+                    ${lib.optionalString (s.finish != ""||null) ''
                       cat > "$out/${name}/reincarnation" << 'EOF'
                     ${s.reincarnation}
                     EOF
@@ -176,8 +177,8 @@
                           };
 
                           setup = lib.mkOption {
-                            type = lib.types.str;
-                            default = "";
+                            type = lib.types.nullOr lib.types.str;
+                            default = null;
                             description = ''
                               Optional executable script run before the service starts.
                               Must exit with status 0 to continue.
@@ -185,8 +186,8 @@
                           };
 
                           run = lib.mkOption {
-                            type = lib.types.str;
-                            default = "";
+                            type = lib.types.nullOr lib.types.str;
+                            default = null;
                             description = ''
                               Optional executable script that runs the service; must not exit while the service is considered running.
                               If empty, the service is treated as a one-shot.
@@ -194,8 +195,8 @@
                           };
 
                           finish = lib.mkOption {
-                            type = lib.types.str;
-                            default = "";
+                            type = lib.types.nullOr lib.types.str;
+                            default = null;
                             description = ''
                               Optional executable script run after the run process finishes.
                               Receives exit status and terminating signal as arguments.
@@ -203,8 +204,8 @@
                           };
 
                           final = lib.mkOption {
-                            type = lib.types.str;
-                            default = "";
+                            type = lib.types.nullOr lib.types.str;
+                            default = null;
                             description = ''
                               Optional executable script for SYS
                               Runs after all services terminate.
@@ -212,8 +213,8 @@
                           };
 
                           fatal = lib.mkOption {
-                            type = lib.types.str;
-                            default = "";
+                            type = lib.types.nullOr lib.types.str;
+                            default = null;
                             description = ''
                               Optional executable script for SYS
                               Runs if unrecoverable error occurs.
@@ -221,8 +222,8 @@
                           };
 
                           reincarnation = lib.mkOption {
-                            type = lib.types.str;
-                            default = "";
+                            type = lib.types.nullOr lib.types.str;
+                            default = null;
                             description = ''
                               Optional executable script for SYS
                               Is executed into instead of a shutdown.
@@ -241,7 +242,7 @@
                     )
                   );
                   default = {
-                    # === PRE-EXISTING SPECIAL SERVICES ===
+                    # === SPECIAL SERVICES ===
 
                     # 1. Default LOG service (catch-all)
                     LOG = {
@@ -304,6 +305,8 @@
                         exec /bin/sh -l
                       '';
                       reincarnation = lib.mkDefault ''
+                        #!/usr/bin/env bash
+                        # SYS/reincarnate: Executed into instead of a shutdown
                       '';
                     };
                   };
