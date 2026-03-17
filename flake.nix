@@ -314,6 +314,18 @@
                       chmod +x "$out/${serviceName}/reincarnation"
                     ''}
 
+                    ${lib.optionalString (s.log != null) ''
+                      if [[ "${s.log}" == *'@' ]]; then
+                        if [[ "${s.log}" == "${serviceName}@"* ]]; then
+                          LOG_DIR="$out/${s.log}"
+                        else
+                          LOG_DIR="$out/${s.log}${serviceName}"
+                        fi
+                      else
+                        LOG_DIR="$out/${s.log}"
+                      fi
+                      ln -s "$LOG_DIR" "$out/${serviceName}/log"
+                    ''}
                   ''
                 ) cfg.services)
               );
@@ -363,7 +375,6 @@
                   Group = cfg.group;
                   Environment = lib.concatStringsSep ":" [
                     "PATH=/run/current-system/sw/bin"
-                    "/home/lantern/.nix-profile/bin"
                     "${pkgs.nitro}/bin"
                     "/usr/local/bin"
                     "/usr/bin"
