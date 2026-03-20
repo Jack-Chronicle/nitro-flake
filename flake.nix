@@ -139,7 +139,7 @@
                     # === SPECIAL SERVICES ===
 
                     # 1. Default LOG service (catch-all)
-                    LOG = {
+                    "LOG" = {
                       run = lib.mkDefault ''
                         #!/usr/bin/env bash
                         LOGFILE="/var/log/nitro/default.log"
@@ -165,7 +165,7 @@
                     };
 
                     # 3. SYS service (system lifecycle)
-                    SYS = {
+                    "SYS" = {
                       setup = lib.mkDefault ''
                         #!/usr/bin/env bash
                         timeout 30 sh -c 'until ping -c1 8.8.8.8 >/dev/null 2>&1; do sleep 1; done' || true
