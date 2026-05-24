@@ -6,7 +6,7 @@
   description = "Home Manager module: Nitro Service Manager";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
   outputs = { self, nixpkgs, ... }:
@@ -213,13 +213,13 @@
                 (final: prev: {
                   nitro = final.stdenv.mkDerivation rec {
                     pname = "nitro";
-                    version = "v0.7.1";
+                    version = "v0.8.1";
 
                     src = final.fetchFromGitHub {
                       owner = "leahneukirchen";
                       repo = pname;
                       rev = version;
-                      sha256 = "JnQ+xcYe36P0bdAlRd1bq7djNji2q0W0o7+bRPKCekY=";
+                      hash = "sha256-WFRJ1RRVzyX4VC2jWAhO7PoZYtuiYQ9mQmnsuj8RHek=";
                     };
 
                     installPhase = ''
