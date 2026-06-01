@@ -369,7 +369,7 @@
                   ExecStart = ''
                     ${pkgs.nitro}/bin/nitro /etc/${lib.removePrefix "/etc/" cfg.path}/services
                   '';
-                  Restart = "always";
+                  Restart = "on-failure";
                   RestartSec = "15s";
                   User = cfg.user;
                   Group = cfg.group;
